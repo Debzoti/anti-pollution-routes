@@ -6,6 +6,7 @@
 ---
 
 ## Table of Contents
+
 1. [Big Picture](#1-big-picture)
 2. [Data Flow Diagram](#2-data-flow-diagram)
 3. [Folder Structure](#3-folder-structure)
@@ -107,7 +108,7 @@ anti-pollution-routes/
 │   │   └── heartbeat.js      # placeholder — scoring + alerts (Step 4)
 │   │
 │   ├── scoring/              # (Step 4) route scoring engine
-│   ├── routes/               # (Step 5) Express API endpoints  
+│   ├── routes/               # (Step 5) Express API endpoints
 │   └── notification/         # (Step 6) alert system
 │
 ├── server.js                 # Express app entrypoint
@@ -123,15 +124,16 @@ anti-pollution-routes/
 ---
 
 ### `config.js`
+
 **What it does**: Loads `.env` once at startup and exports a clean config object.  
 **Why it exists**: So the rest of the app never calls `process.env` directly — all config goes through here.
 
 ```js
-config.port            // Express server port (default 3000)
-config.openaqApiKey    // OpenAQ API key
-config.openWeatherApiKey
-config.tomTomApiKey
-config.dbConnection    // Full postgres connection string
+config.port; // Express server port (default 3000)
+config.openaqApiKey; // OpenAQ API key
+config.openWeatherApiKey;
+config.tomTomApiKey;
+config.dbConnection; // Full postgres connection string
 ```
 
 > **Rule**: If you add a new env variable, add it here too — never use `process.env.SOMETHING` directly in business logic.
@@ -139,13 +141,15 @@ config.dbConnection    // Full postgres connection string
 ---
 
 ### `server.js`
+
 **What it does**: Creates the Express app, registers middleware, starts the HTTP server, and boots the scheduler.
 
 ```js
-import './src/jobs/scheduler.js'  // ← this one line starts ALL cron jobs on boot
+import "./src/jobs/scheduler.js"; // ← this one line starts ALL cron jobs on boot
 ```
 
 **Endpoints right now**:
+
 - `GET /` — health check, returns `{ status: 'ok' }`
 
 > **Rule**: Add new routes by creating files in `src/routes/` and importing them here — don't put business logic directly in `server.js`.
@@ -153,6 +157,7 @@ import './src/jobs/scheduler.js'  // ← this one line starts ALL cron jobs on b
 ---
 
 ### `src/db/client.js`
+
 **What it does**: Creates **one** `pg.Pool` and exports it.  
 **Why singleton**: Opening a new DB connection for every request is expensive. One pool handles up to 10 concurrent connections and reuses them.
 
@@ -166,6 +171,7 @@ const pool2 = new Pool({ ... });        // ❌ wrong — never do this
 ---
 
 ### `src/db/queries.js`
+
 **What it does**: Holds every SQL string as a named export.  
 **Why**: Keeps SQL out of business logic files. If you need to change a query, there's exactly one place to look.
 
@@ -180,6 +186,7 @@ export const LATEST_AIR_QUALITY_NEAR = `SELECT * FROM air_quality WHERE lat BETW
 ---
 
 ### `src/ingestion/fetchers/aqi.js`
+
 **What it does**: Calls the OpenAQ v3 API and returns the **raw JSON response**.  
 **Nothing else** — no DB, no transformation.
 
@@ -195,6 +202,7 @@ export async function fetchAQI()
 ---
 
 ### `src/ingestion/fetchers/weather.js`
+
 **What it does**: Calls OpenWeather `/weather` for a given lat/lon pair. Returns raw JSON.
 
 ```js
@@ -209,6 +217,7 @@ export async function fetchWeather(lat, lon)
 ---
 
 ### `src/ingestion/fetchers/traffic.js`
+
 **What it does**: Calls TomTom's Traffic Flow API for a road segment at a given lat/lon. Returns raw JSON.
 
 ```js
@@ -230,6 +239,7 @@ This is the **contract** the entire system relies on. If this shape changes, eve
 #### Standard Shapes
 
 **AQI row** (from `normaliseAQI(rawLocationObject)`):
+
 ```js
 {
   type: 'aqi',
@@ -250,6 +260,7 @@ This is the **contract** the entire system relies on. If this shape changes, eve
 ```
 
 **Weather row** (from `normaliseWeather(rawApiResponse)`):
+
 ```js
 {
   type: 'weather',
@@ -268,6 +279,7 @@ This is the **contract** the entire system relies on. If this shape changes, eve
 ```
 
 **Traffic row** (from `normaliseTraffic(rawApiResponse, lat, lng)`):
+
 ```js
 {
   type: 'traffic',
@@ -287,6 +299,7 @@ This is the **contract** the entire system relies on. If this shape changes, eve
 ---
 
 ### `src/ingestion/writer.js`
+
 **What it does**: Takes one normalised row, picks the right SQL, and inserts it into TimescaleDB.
 
 ```js
@@ -302,6 +315,7 @@ export async function writeRow(row)
 ---
 
 ### `src/jobs/scheduler.js`
+
 **What it does**: Registers cron jobs that fire each fetcher on a timer. Wires fetchers → normaliser → writer.
 
 ```
@@ -317,6 +331,7 @@ Currently polls **two cities**: New Delhi and Mumbai. Add more by extending the 
 ---
 
 ### `src/jobs/heartbeat.js`
+
 **What it does**: Placeholder for Step 4. Will run every 15 minutes to trigger the scoring engine and send push notifications when air quality at a user's route worsens.
 
 ---
@@ -326,43 +341,47 @@ Currently polls **two cities**: New Delhi and Mumbai. Add more by extending the 
 All 4 tables are **TimescaleDB hypertables** — they behave exactly like normal Postgres tables but are automatically partitioned by time for fast time-range queries.
 
 ### `air_quality`
-| Column | Type | Description |
-|--------|------|-------------|
-| `time` | TIMESTAMPTZ | Measurement timestamp (partition key) |
-| `location_id` | TEXT | OpenAQ location ID |
-| `location_name` | TEXT | Human-readable name |
-| `latitude`, `longitude` | DOUBLE | GPS coordinates |
-| `pm25`, `pm10`, `no2`, `o3`, `co`, `so2` | DOUBLE | Pollutant readings |
-| `aqi` | INTEGER | Composite score (filled by scoring engine) |
-| `source` | TEXT | Always `'openaq'` |
+
+| Column                                   | Type        | Description                                |
+| ---------------------------------------- | ----------- | ------------------------------------------ |
+| `time`                                   | TIMESTAMPTZ | Measurement timestamp (partition key)      |
+| `location_id`                            | TEXT        | OpenAQ location ID                         |
+| `location_name`                          | TEXT        | Human-readable name                        |
+| `latitude`, `longitude`                  | DOUBLE      | GPS coordinates                            |
+| `pm25`, `pm10`, `no2`, `o3`, `co`, `so2` | DOUBLE      | Pollutant readings                         |
+| `aqi`                                    | INTEGER     | Composite score (filled by scoring engine) |
+| `source`                                 | TEXT        | Always `'openaq'`                          |
 
 ### `weather_snapshots`
-| Column | Type | Description |
-|--------|------|-------------|
-| `time` | TIMESTAMPTZ | Partition key |
-| `latitude`, `longitude` | DOUBLE | Point queried |
-| `temp_celsius`, `humidity_pct` | DOUBLE | Weather values |
-| `wind_speed_ms`, `wind_deg` | DOUBLE / INT | Wind data |
-| `weather_main`, `weather_desc` | TEXT | e.g. `"Rain"`, `"light rain"` |
-| `visibility_m` | INTEGER | Visibility in metres |
+
+| Column                         | Type         | Description                   |
+| ------------------------------ | ------------ | ----------------------------- |
+| `time`                         | TIMESTAMPTZ  | Partition key                 |
+| `latitude`, `longitude`        | DOUBLE       | Point queried                 |
+| `temp_celsius`, `humidity_pct` | DOUBLE       | Weather values                |
+| `wind_speed_ms`, `wind_deg`    | DOUBLE / INT | Wind data                     |
+| `weather_main`, `weather_desc` | TEXT         | e.g. `"Rain"`, `"light rain"` |
+| `visibility_m`                 | INTEGER      | Visibility in metres          |
 
 ### `traffic_conditions`
-| Column | Type | Description |
-|--------|------|-------------|
-| `time` | TIMESTAMPTZ | Partition key |
-| `segment_id` | TEXT | Road segment identifier |
-| `free_flow_speed`, `current_speed` | DOUBLE | km/h |
-| `congestion_level` | DOUBLE | 0.0 = free, 1.0 = standstill |
-| `travel_time_sec` | INTEGER | Estimated travel time |
 
-### `route_scores` *(filled by Step 4 scoring engine)*
-| Column | Type | Description |
-|--------|------|-------------|
-| `time` | TIMESTAMPTZ | When score was computed |
-| `route_id` | TEXT | Hash of origin→destination |
-| `aqi_score`, `traffic_score`, `weather_score` | DOUBLE | 0–100 individual scores |
-| `composite_score` | DOUBLE | Weighted final score |
-| `recommended` | BOOLEAN | Whether this is the best route |
+| Column                             | Type        | Description                  |
+| ---------------------------------- | ----------- | ---------------------------- |
+| `time`                             | TIMESTAMPTZ | Partition key                |
+| `segment_id`                       | TEXT        | Road segment identifier      |
+| `free_flow_speed`, `current_speed` | DOUBLE      | km/h                         |
+| `congestion_level`                 | DOUBLE      | 0.0 = free, 1.0 = standstill |
+| `travel_time_sec`                  | INTEGER     | Estimated travel time        |
+
+### `route_scores` _(filled by Step 4 scoring engine)_
+
+| Column                                        | Type        | Description                    |
+| --------------------------------------------- | ----------- | ------------------------------ |
+| `time`                                        | TIMESTAMPTZ | When score was computed        |
+| `route_id`                                    | TEXT        | Hash of origin→destination     |
+| `aqi_score`, `traffic_score`, `weather_score` | DOUBLE      | 0–100 individual scores        |
+| `composite_score`                             | DOUBLE      | Weighted final score           |
+| `recommended`                                 | BOOLEAN     | Whether this is the best route |
 
 ---
 
@@ -395,6 +414,7 @@ PORT=3000
 ## 7. How to Run
 
 ### Start DB (TimescaleDB in Docker/Podman)
+
 ```bash
 # Start Podman socket first
 systemctl --user start podman.socket
@@ -408,6 +428,7 @@ podman-compose up -d
 The `init-db/01-schema.sql` script runs **automatically** on first start and creates all 4 tables.
 
 ### Start the Node Server
+
 ```bash
 pnpm run dev        # watches for file changes
 # or
@@ -415,12 +436,14 @@ pnpm start          # production
 ```
 
 On startup you'll see:
+
 ```
 [scheduler] All cron jobs registered — AQI:15min, Weather:30min, Traffic:10min
 [server] Listening on port 3000
 ```
 
 Data starts flowing into TimescaleDB. Check it with:
+
 ```bash
 podman exec -it anti-pollution-db psql -U postgres -d anti_pollution \
   -c "SELECT time, location_name, pm25 FROM air_quality ORDER BY time DESC LIMIT 5;"

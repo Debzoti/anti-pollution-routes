@@ -1,9 +1,5 @@
-import pool from '../db/client.js';
-import {
-  INSERT_AIR_QUALITY,
-  INSERT_WEATHER,
-  INSERT_TRAFFIC,
-} from '../db/queries.js';
+import pool from "../db/client.js";
+import { INSERT_AIR_QUALITY, INSERT_WEATHER, INSERT_TRAFFIC } from "../db/queries.js";
 
 /**
  * writer.js — single responsibility: take one normalised row, write it to TimescaleDB.
@@ -13,7 +9,7 @@ import {
  */
 export async function writeRow(row) {
   switch (row.type) {
-    case 'aqi':
+    case "aqi":
       await pool.query(INSERT_AIR_QUALITY, [
         row.timestamp,
         row.locationId,
@@ -31,7 +27,7 @@ export async function writeRow(row) {
       ]);
       break;
 
-    case 'weather':
+    case "weather":
       await pool.query(INSERT_WEATHER, [
         row.timestamp,
         row.lat,
@@ -48,7 +44,7 @@ export async function writeRow(row) {
       ]);
       break;
 
-    case 'traffic':
+    case "traffic":
       await pool.query(INSERT_TRAFFIC, [
         row.timestamp,
         row.segmentId,

@@ -3,7 +3,7 @@
 export function calculateTrafficWeight(freeFlowSpeed, currentSpeed) {
   // congested road = higher number
   if (!freeFlowSpeed || !currentSpeed || currentSpeed === 0) return 1.0;
-  return freeFlowSpeed / currentSpeed; 
+  return freeFlowSpeed / currentSpeed;
 }
 
 export function calculateWindFactor(travelBearing, windDirection) {
@@ -14,9 +14,9 @@ export function calculateWindFactor(travelBearing, windDirection) {
   // Headwind = 180 difference, factor should be higher (e.g., 1.5). Tailwind = 0 diff, factor 0.5.
   if (windDirection == null || travelBearing == null) return 1.0;
 
-  const diff = Math.abs((windDirection - travelBearing + 180) % 360 - 180);
-  
-  // Diff is between 0 and 180. 
+  const diff = Math.abs(((windDirection - travelBearing + 180) % 360) - 180);
+
+  // Diff is between 0 and 180.
   // Let's make it a multiplier from 0.8 (tailwind) to 1.5 (headwind)
   // This is a simple linear map: 0->0.8, 180->1.5
   return 0.8 + (diff / 180) * 0.7;

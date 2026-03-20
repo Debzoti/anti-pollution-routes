@@ -1,21 +1,21 @@
-import cron from 'node-cron';
-import { fetchAQI } from '../ingestion/fetchers/aqi.js';
-import { fetchWeather } from '../ingestion/fetchers/weather.js';
-import { fetchTraffic } from '../ingestion/fetchers/traffic.js';
-import { normaliseAQI, normaliseWeather, normaliseTraffic } from '../ingestion/normaliser.js';
-import { writeRow } from '../ingestion/writer.js';
+import cron from "node-cron";
+import { fetchAQI } from "../ingestion/fetchers/aqi.js";
+import { fetchWeather } from "../ingestion/fetchers/weather.js";
+import { fetchTraffic } from "../ingestion/fetchers/traffic.js";
+import { normaliseAQI, normaliseWeather, normaliseTraffic } from "../ingestion/normaliser.js";
+import { writeRow } from "../ingestion/writer.js";
 
 // ── Coordinates to poll (you can extend this to a list of city points later)
 const POINTS = [
-  { lat: 28.6139, lon: 77.2090, label: 'New Delhi' },
-  { lat: 19.0760, lon: 72.8777, label: 'Mumbai' },
+  { lat: 28.6139, lon: 77.209, label: "New Delhi" },
+  { lat: 19.076, lon: 72.8777, label: "Mumbai" },
 ];
 
 // ─────────────────────────────────────────────
 // AQI — run every 15 minutes
 // ─────────────────────────────────────────────
-cron.schedule('*/15 * * * *', async () => {
-  console.log('[scheduler] Running AQI ingestion...');
+cron.schedule("*/15 * * * *", async () => {
+  console.log("[scheduler] Running AQI ingestion...");
   for (const { lat, lon, label } of POINTS) {
     try {
       const raw = await fetchAQI(lat, lon);
@@ -34,8 +34,8 @@ cron.schedule('*/15 * * * *', async () => {
 // ─────────────────────────────────────────────
 // Weather — run every 30 minutes
 // ─────────────────────────────────────────────
-cron.schedule('*/30 * * * *', async () => {
-  console.log('[scheduler] Running Weather ingestion...');
+cron.schedule("*/30 * * * *", async () => {
+  console.log("[scheduler] Running Weather ingestion...");
   for (const { lat, lon, label } of POINTS) {
     try {
       const raw = await fetchWeather(lat, lon);
@@ -51,8 +51,8 @@ cron.schedule('*/30 * * * *', async () => {
 // ─────────────────────────────────────────────
 // Traffic — run every 10 minutes
 // ─────────────────────────────────────────────
-cron.schedule('*/10 * * * *', async () => {
-  console.log('[scheduler] Running Traffic ingestion...');
+cron.schedule("*/10 * * * *", async () => {
+  console.log("[scheduler] Running Traffic ingestion...");
   for (const { lat, lon, label } of POINTS) {
     try {
       const raw = await fetchTraffic(lat, lon);
@@ -65,4 +65,4 @@ cron.schedule('*/10 * * * *', async () => {
   }
 });
 
-console.log('[scheduler] All cron jobs registered — AQI:15min, Weather:30min, Traffic:10min');
+console.log("[scheduler] All cron jobs registered — AQI:15min, Weather:30min, Traffic:10min");
