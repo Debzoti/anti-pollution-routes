@@ -17,7 +17,7 @@ export async function fetchRoutes(originLat, originLng, destLat, destLng) {
         [originLng, originLat],
         [destLng, destLat]
       ],
-      alternative_routes: { target_count: 5 }
+      alternative_routes: { target_count: 3 }
     },
     {
       headers: {

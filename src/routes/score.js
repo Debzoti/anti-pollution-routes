@@ -12,7 +12,7 @@ router.post('/score', async (req, res) => {
       return res.status(400).json({ error: "Missing origin or destination coordinates" });
     }
 
-    // 1. Fetch up to 5 alternative polylines from OpenRouteService
+    // 1. Fetch 3 alternative polylines from OpenRouteService
     const polylines = await fetchRoutes(originLat, originLng, destLat, destLng);
     
     // 2. Score them all in parallel via pesCalculator
