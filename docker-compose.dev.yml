@@ -1,0 +1,8 @@
+# Development overrides
+services:
+  db:
+    ports:
+      - "5432:5432"
+    environment:
+      # More permissive settings for development
+      POSTGRES_HOST_AUTH_METHOD: trust
