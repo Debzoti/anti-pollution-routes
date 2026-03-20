@@ -1,6 +1,6 @@
 services:
   db:
-    image: docker.io/timescale/timescaledb:latest-pg16
+    image: docker.io/timescale/timescaledb-ha:pg16
     container_name: anti-pollution-db
     restart: unless-stopped
     environment:

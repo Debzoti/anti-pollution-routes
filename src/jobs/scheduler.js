@@ -16,17 +16,18 @@ const POINTS = [
 // ─────────────────────────────────────────────
 cron.schedule('*/15 * * * *', async () => {
   console.log('[scheduler] Running AQI ingestion...');
-  try {
-    const raw = await fetchAQI();
-    const results = raw?.results ?? [];
-    for (const item of results) {
-      const row = normaliseAQI(item);
-      await writeRow(row);
+  for (const { lat, lon, label } of POINTS) {
+    try {
+      const raw = await fetchAQI(lat, lon);
+      const results = raw?.results ?? [];
+      for (const item of results) {
+        const row = normaliseAQI(item);
+        await writeRow(row);
+      }
+      console.log(`[scheduler] AQI: stored ${results.length} readings for ${label}`);
+    } catch (err) {
+      console.error(`[scheduler] AQI failed for ${label}:`, err.message);
     }
-    console.log(`[scheduler] AQI: stored ${results.length} readings`);
-  } catch (err) {
-    console.error('[scheduler] AQI ingestion failed:', err.message);
-    // fail gracefully — never crash the process
   }
 });
 

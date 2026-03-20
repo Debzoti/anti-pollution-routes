@@ -7,6 +7,7 @@ const config = {
   openaqApiKey: process.env.OPENAQ_API_KEY,
   openWeatherApiKey: process.env.OPENWEATHER_API_KEY,
   tomTomApiKey: process.env.TOMTOM_API_KEY,
+  openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
   dbConnection: process.env.DB_CONNECTION,
 };
 

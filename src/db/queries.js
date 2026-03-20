@@ -55,3 +55,45 @@ export const LATEST_TRAFFIC_NEAR = `
   ORDER BY time DESC
   LIMIT 1
 `;
+
+export const NEAREST_AQI_POSTGIS = `
+  SELECT * FROM air_quality
+  WHERE time > NOW() - INTERVAL '15 minutes'
+    AND ST_DWithin(
+      ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
+      ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 
+      500
+    )
+  ORDER BY ST_Distance(
+    ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
+    ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+  ) ASC LIMIT 1;
+`;
+
+export const NEAREST_WEATHER_POSTGIS = `
+  SELECT * FROM weather_snapshots
+  WHERE time > NOW() - INTERVAL '15 minutes'
+    AND ST_DWithin(
+      ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
+      ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 
+      500
+    )
+  ORDER BY ST_Distance(
+    ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
+    ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+  ) ASC LIMIT 1;
+`;
+
+export const NEAREST_TRAFFIC_POSTGIS = `
+  SELECT * FROM traffic_conditions
+  WHERE time > NOW() - INTERVAL '15 minutes'
+    AND ST_DWithin(
+      ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
+      ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 
+      500
+    )
+  ORDER BY ST_Distance(
+    ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
+    ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+  ) ASC LIMIT 1;
+`;
