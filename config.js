@@ -9,6 +9,7 @@ const config = {
   tomTomApiKey: process.env.TOMTOM_API_KEY,
   openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
   dbConnection: process.env.DB_CONNECTION,
+  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
 };
 
 // Validate critical environment variables on startup

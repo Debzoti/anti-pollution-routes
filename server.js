@@ -18,6 +18,7 @@ try {
     console.error("Failed to load swagger.json:", error);
     swaggerDocument = {};
 }
+import { connectRedis } from './src/db/redis.js';
 
 const app = express();
 app.use(express.static('public'))
@@ -57,6 +58,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-app.listen(config.port, () => {
+app.listen(config.port, async () => {
+  await connectRedis();
   console.log(`[server] Listening on port ${config.port}`);
 });
