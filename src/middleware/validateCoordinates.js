@@ -1,17 +1,36 @@
-// Kolkata bounding box: approximately 22.5°N to 22.9°N, 88.2°E to 88.6°E
-// Used for SSE endpoint validation
-const KOLKATA_BOUNDS = {
-  minLat: 22.5,
-  maxLat: 22.9,
-  minLng: 88.2,
-  maxLng: 88.6
+// Service area bounding boxes for supported cities
+const SERVICE_AREAS = {
+  MUMBAI: {
+    minLat: 18.9,
+    maxLat: 19.3,
+    minLng: 72.7,
+    maxLng: 73.0
+  },
+  DELHI: {
+    minLat: 28.4,
+    maxLat: 28.9,
+    minLng: 76.8,
+    maxLng: 77.4
+  },
+  KOLKATA: {
+    minLat: 22.4,
+    maxLat: 22.9,
+    minLng: 88.2,
+    maxLng: 88.6
+  }
 };
 
-function isWithinKolkata(lat, lng) {
-  return lat >= KOLKATA_BOUNDS.minLat && 
-         lat <= KOLKATA_BOUNDS.maxLat && 
-         lng >= KOLKATA_BOUNDS.minLng && 
-         lng <= KOLKATA_BOUNDS.maxLng;
+function isWithinServiceArea(lat, lng) {
+  // Check if coordinates fall within any supported city
+  for (const [city, bounds] of Object.entries(SERVICE_AREAS)) {
+    if (lat >= bounds.minLat && 
+        lat <= bounds.maxLat && 
+        lng >= bounds.minLng && 
+        lng <= bounds.maxLng) {
+      return { valid: true, city };
+    }
+  }
+  return { valid: false, city: null };
 }
 
 /**
@@ -70,6 +89,27 @@ export function validateCoordinates(req, res, next) {
     });
   }
 
+  // 4. Validate coordinates are within service areas
+  const originCheck = isWithinServiceArea(originLat, originLng);
+  if (!originCheck.valid) {
+    return res.status(400).json({ 
+      error: "Origin is outside supported service areas",
+      supportedCities: Object.keys(SERVICE_AREAS),
+      bounds: SERVICE_AREAS,
+      received: { lat: originLat, lng: originLng }
+    });
+  }
+
+  const destCheck = isWithinServiceArea(destLat, destLng);
+  if (!destCheck.valid) {
+    return res.status(400).json({ 
+      error: "Destination is outside supported service areas",
+      supportedCities: Object.keys(SERVICE_AREAS),
+      bounds: SERVICE_AREAS,
+      received: { lat: destLat, lng: destLng }
+    });
+  }
+
   // All validations passed
   next();
 }
@@ -112,18 +152,22 @@ export function validateQueryCoordinates(req, res, next) {
   }
 
   // 4. Validate bounds
-  if (!isWithinKolkata(coords.originLat, coords.originLng)) {
+  const originCheck = isWithinServiceArea(coords.originLat, coords.originLng);
+  if (!originCheck.valid) {
     return res.status(400).json({ 
-      error: "Origin is outside Kolkata service area",
-      bounds: KOLKATA_BOUNDS,
+      error: "Origin is outside supported service areas",
+      supportedCities: Object.keys(SERVICE_AREAS),
+      bounds: SERVICE_AREAS,
       received: { lat: coords.originLat, lng: coords.originLng }
     });
   }
 
-  if (!isWithinKolkata(coords.destLat, coords.destLng)) {
+  const destCheck = isWithinServiceArea(coords.destLat, coords.destLng);
+  if (!destCheck.valid) {
     return res.status(400).json({ 
-      error: "Destination is outside Kolkata service area",
-      bounds: KOLKATA_BOUNDS,
+      error: "Destination is outside supported service areas",
+      supportedCities: Object.keys(SERVICE_AREAS),
+      bounds: SERVICE_AREAS,
       received: { lat: coords.destLat, lng: coords.destLng }
     });
   }
