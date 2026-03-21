@@ -1,4 +1,5 @@
 import express from 'express';
+import { validateQueryCoordinates } from '../middleware/validateCoordinates.js';
 
 export const router = express.Router();
 
@@ -9,12 +10,9 @@ const activeConnections = new Map();
  * SSE endpoint for live route updates
  * Client connects and receives updates when better routes are found
  */
-router.get("/updates", (req, res) => {
-  const { originLat, originLng, destLat, destLng } = req.query;
-
-  if (!originLat || !originLng || !destLat || !destLng) {
-    return res.status(400).json({ error: "Missing route coordinates" });
-  }
+router.get("/updates", validateQueryCoordinates, (req, res) => {
+  // Coordinates are already validated and parsed by middleware
+  const { originLat, originLng, destLat, destLng } = req.coordinates;
 
   // Create unique key for this route
   const routeKey = `${originLat}:${originLng}:${destLat}:${destLng}`;
