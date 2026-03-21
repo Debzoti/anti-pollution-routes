@@ -20,6 +20,15 @@ services:
     networks:
       - anti-pollution-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: anti-pollution-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - anti-pollution-network
+
 volumes:
   postgres_data:
     driver: local

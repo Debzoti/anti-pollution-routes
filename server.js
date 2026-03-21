@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import config from './config.js';
 import './src/jobs/scheduler.js'; // registers all cron jobs on startup
+import { connectRedis } from './src/db/redis.js';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get('/', (req, res) => {
 
 app.use('/api', scoreRoutes);
 
-app.listen(config.port, () => {
+app.listen(config.port, async () => {
+  await connectRedis();
   console.log(`[server] Listening on port ${config.port}`);
 });
