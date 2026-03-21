@@ -4,6 +4,8 @@ import { fetchRoutes } from "../scoring/routeFetcher.js";
 import { calculateRoutePES } from "../scoring/pesCalculator.js";
 import pool from "../db/client.js";
 import { INSERT_ROUTE_SCORE } from "../db/queries.js";
+import { redisClient } from "../db/redis.js";
+import { broadcastRouteUpdate, getMonitoredRoutes } from "../routes/sse.js";
 
 // Predefined popular routes to score periodically
 // Extend this list with real user routes
@@ -27,6 +29,10 @@ const POPULAR_ROUTES = [
 async function scoreAndStoreRoute(route, routeIndex) {
   const { originLat, originLng, destLat, destLng, label } = route;
 
+  // Check if this route has active SSE listeners
+  const routeKey = `${originLat}:${originLng}:${destLat}:${destLng}`;
+  const cacheKey = `route:${routeKey}`;
+
   // Fetch alternative polylines
   const polylines = await fetchRoutes(originLat, originLng, destLat, destLng);
 
@@ -39,8 +45,35 @@ async function scoreAndStoreRoute(route, routeIndex) {
   scoredRoutes.sort((a, b) => a.pes - b.pes);
 
   const timestamp = new Date();
+  const newBestRoute = scoredRoutes[0];
 
-  // Insert all routes, mark the best one as recommended
+  // Check if the best route changed (compare with Redis cache)
+  let routeChanged = false;
+  if (redisClient.isOpen) {
+    try {
+      const cachedResult = await redisClient.get(cacheKey);
+      if (cachedResult) {
+        const cachedRoutes = JSON.parse(cachedResult);
+        const oldBestRoute = cachedRoutes[0];
+        
+        // Route changed if best route ID or PES score changed significantly
+        if (oldBestRoute.routeId !== newBestRoute.routeId || 
+            Math.abs(oldBestRoute.pes - newBestRoute.pes) > 5) {
+          routeChanged = true;
+          console.log(`[heartbeat] 🔄 Route changed for ${label}:`);
+          console.log(`   Old: ${oldBestRoute.routeId} (PES: ${oldBestRoute.pes})`);
+          console.log(`   New: ${newBestRoute.routeId} (PES: ${newBestRoute.pes})`);
+        }
+      }
+
+      // Update Redis cache with new scores
+      await redisClient.setEx(cacheKey, 3600, JSON.stringify(scoredRoutes));
+    } catch (err) {
+      console.error('[heartbeat] Redis error:', err.message);
+    }
+  }
+
+  // Insert all routes into database
   for (let i = 0; i < scoredRoutes.length; i++) {
     const scored = scoredRoutes[i];
     const isRecommended = i === 0;
@@ -60,6 +93,11 @@ async function scoreAndStoreRoute(route, routeIndex) {
     ]);
   }
 
+  // Broadcast update to connected SSE clients if route changed
+  if (routeChanged) {
+    broadcastRouteUpdate(originLat, originLng, destLat, destLng, scoredRoutes);
+  }
+
   console.log(
     `[heartbeat] Scored ${scoredRoutes.length} routes for ${label}${
       scoredRoutes.length > 0 ? `, recommended: ${scoredRoutes[0].routeId}` : ""
@@ -71,11 +109,42 @@ async function scoreAndStoreRoute(route, routeIndex) {
 export async function runHeartbeat() {
   console.log("[heartbeat] Starting scheduled scoring...");
 
+  // Score predefined popular routes
   for (let i = 0; i < POPULAR_ROUTES.length; i++) {
     try {
       await scoreAndStoreRoute(POPULAR_ROUTES[i], i);
     } catch (err) {
       console.error(`[heartbeat] Failed to score route ${POPULAR_ROUTES[i].label}:`, err.message);
+    }
+  }
+
+  // Also score any routes that have active SSE listeners
+  const monitoredRoutes = getMonitoredRoutes();
+  if (monitoredRoutes.length > 0) {
+    console.log(`[heartbeat] Scoring ${monitoredRoutes.length} monitored routes...`);
+    
+    for (const routeKey of monitoredRoutes) {
+      const [originLat, originLng, destLat, destLng] = routeKey.split(':').map(Number);
+      
+      // Skip if already in popular routes
+      const isPopular = POPULAR_ROUTES.some(r => 
+        r.originLat === originLat && r.originLng === originLng &&
+        r.destLat === destLat && r.destLng === destLng
+      );
+      
+      if (!isPopular) {
+        try {
+          await scoreAndStoreRoute({
+            originLat,
+            originLng,
+            destLat,
+            destLng,
+            label: `User route ${routeKey}`
+          }, -1);
+        } catch (err) {
+          console.error(`[heartbeat] Failed to score monitored route ${routeKey}:`, err.message);
+        }
+      }
     }
   }
 

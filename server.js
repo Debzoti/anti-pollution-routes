@@ -28,6 +28,7 @@ app.use(express.json());
 
 import { router as scoreRoutes } from "./src/routes/score.js";
 import { router as dataRoutes } from "./src/routes/data.js";
+import { router as sseRoutes } from "./src/routes/sse.js";
 
 app.get("/", (_req, res) => {
   res.json({ status: "ok", message: "Anti-Pollution Routes API running" });
@@ -53,6 +54,7 @@ app.get("/health", async (_req, res) => {
 
 app.use("/api", scoreRoutes);
 app.use("/api", dataRoutes);
+app.use("/api", sseRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
