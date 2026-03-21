@@ -1,16 +1,26 @@
 import swaggerAutogen from 'swagger-autogen';
 
 const doc = {
-    info: {
-        title: 'Anti-Pollution Routes API',
-        description: 'API for calculating low-pollution routes based on air quality, weather, and traffic data',
-        version: '1.0.0',
+  info: {
+    title: 'Anti-Pollution Routes API',
+    description: 'API for calculating pollution exposure scores for routes in Indian cities',
+    version: '1.0.0',
+  },
+  host: 'localhost:3000',
+  schemes: ['http'],
+  tags: [
+    {
+      name: 'Routes',
+      description: 'Route scoring endpoints',
     },
-    host: 'localhost:3000',
-    schemes: ['http', 'https'],
+    {
+      name: 'SSE',
+      description: 'Server-Sent Events for live updates',
+    },
+  ],
 };
 
 const outputFile = './swagger-output.json';
-const endpointsFiles = ['./server.js']; // your main express 
+const routes = ['./server.js'];
 
-swaggerAutogen()(outputFile, endpointsFiles, doc);
+swaggerAutogen()(outputFile, routes, doc);

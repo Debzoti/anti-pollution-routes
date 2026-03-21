@@ -1,0 +1,423 @@
+{
+  "info": {
+    "name": "Dynamic Route Input Tests",
+    "description": "Comprehensive test suite for dynamic route input feature",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🗺️ Ola Maps Tests",
+      "item": [
+        {
+          "name": "✅ Ola Maps: Mumbai Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"originLat\": 19.0760,\n  \"originLng\": 72.8777,\n  \"destLat\": 19.0850,\n  \"destLng\": 72.8950\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/score",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "score"]
+            },
+            "description": "Backend calls Ola Maps API to get routes for Mumbai"
+          }
+        },
+        {
+          "name": "✅ Ola Maps: Delhi Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"originLat\": 28.6139,\n  \"originLng\": 77.2090,\n  \"destLat\": 28.6280,\n  \"destLng\": 77.2200\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/score",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "score"]
+            },
+            "description": "Backend calls Ola Maps API to get routes for Delhi"
+          }
+        },
+        {
+          "name": "✅ Ola Maps: Bangalore Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"originLat\": 12.9716,\n  \"originLng\": 77.5946,\n  \"destLat\": 12.9800,\n  \"destLng\": 77.6000\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/score",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "score"]
+            },
+            "description": "Backend calls Ola Maps API to get routes for Bangalore"
+          }
+        }
+      ],
+      "description": "Tests for Ola Maps backend integration - frontend sends only origin/destination"
+    },
+    {
+      "name": "✅ Test 1: Coordinate-Based (Kolkata)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originLat\": 22.5726,\n  \"originLng\": 88.3639,\n  \"destLat\": 22.5958,\n  \"destLng\": 88.4026\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Traditional coordinate-based request (existing behavior)"
+      }
+    },
+    {
+      "name": "✅ Test 2: Route-Based (Kolkata)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [\n      [88.3639, 22.5726],\n      [88.3700, 22.5750],\n      [88.3800, 22.5850],\n      [88.4026, 22.5958]\n    ],\n    [\n      [88.3639, 22.5726],\n      [88.3650, 22.5800],\n      [88.3900, 22.5900],\n      [88.4026, 22.5958]\n    ]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send custom route polylines (new feature)"
+      }
+    },
+    {
+      "name": "✅ Test 3: Route-Based (Delhi)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [\n      [77.2090, 28.6139],\n      [77.2150, 28.6200],\n      [77.2250, 28.6300]\n    ]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Test multi-city support with Delhi coordinates"
+      }
+    },
+    {
+      "name": "✅ Test 4: Route-Based (Mumbai)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [\n      [72.8777, 19.0760],\n      [72.8850, 19.0800],\n      [72.8950, 19.0900]\n    ]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Test Mumbai coordinates"
+      }
+    },
+    {
+      "name": "❌ Test 5: Too Many Routes (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [[88.3639, 22.5726], [88.4026, 22.5958]],\n    [[88.3639, 22.5726], [88.4026, 22.5958]],\n    [[88.3639, 22.5726], [88.4026, 22.5958]],\n    [[88.3639, 22.5726], [88.4026, 22.5958]]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send 4 routes (max is 3) - expect 400"
+      }
+    },
+    {
+      "name": "❌ Test 6: Empty Routes Array (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": []\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send empty routes array - expect 400"
+      }
+    },
+    {
+      "name": "❌ Test 7: Route Too Short (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [[88.3639, 22.5726]]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send route with only 1 point (min is 2) - expect 400"
+      }
+    },
+    {
+      "name": "❌ Test 8: Invalid Route Structure (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": \"not an array\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send routes as string instead of array - expect 400"
+      }
+    },
+    {
+      "name": "❌ Test 9: Invalid Coordinate Format (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [\n      [88.3639, \"22.5726\"],\n      [88.4026, 22.5958]\n    ]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send coordinate as string instead of number - expect 400"
+      }
+    },
+    {
+      "name": "❌ Test 10: Longitude Out of Range (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [\n      [200, 22.5726],\n      [88.4026, 22.5958]\n    ]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send longitude > 180 - expect 400"
+      }
+    },
+    {
+      "name": "❌ Test 11: Latitude Out of Range (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [\n      [88.3639, 100],\n      [88.4026, 22.5958]\n    ]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send latitude > 90 - expect 400"
+      }
+    },
+    {
+      "name": "❌ Test 12: Unsupported Region - New York (404)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [\n      [-74.0060, 40.7128],\n      [-73.9950, 40.7200],\n      [-73.9850, 40.7300]\n    ]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Send coordinates from unsupported region - expect 404"
+      }
+    },
+    {
+      "name": "✅ Test 13: Cache Test (First Request)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [[88.3639, 22.5726], [88.4026, 22.5958]]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "First request - cache miss (slower)"
+      }
+    },
+    {
+      "name": "✅ Test 14: Cache Test (Second Request)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routes\": [\n    [[88.3639, 22.5726], [88.4026, 22.5958]]\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/score",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["score"]
+        },
+        "description": "Second request - cache hit (faster)"
+      }
+    }
+  ]
+}

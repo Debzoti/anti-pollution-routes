@@ -8,6 +8,7 @@ const config = {
   openWeatherApiKey: process.env.OPENWEATHER_API_KEY,
   tomTomApiKey: process.env.TOMTOM_API_KEY,
   openRouteServiceApiKey: process.env.OPENROUTESERVICE_API_KEY,
+  olaMapsApiKey: process.env.OLA_MAPS_API_KEY,
   dbConnection: process.env.DB_CONNECTION,
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
 };
@@ -19,6 +20,7 @@ function validateConfig() {
     openWeatherApiKey: "OPENWEATHER_API_KEY",
     tomTomApiKey: "TOMTOM_API_KEY",
     openRouteServiceApiKey: "OPENROUTESERVICE_API_KEY",
+    olaMapsApiKey: "OLA_MAPS_API_KEY",
     dbConnection: "DB_CONNECTION",
   };
 

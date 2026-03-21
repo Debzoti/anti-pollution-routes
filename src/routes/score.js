@@ -1,16 +1,32 @@
 import express from 'express';
+import crypto from 'crypto';
 import { fetchRoutes } from '../scoring/routeFetcher.js';
+import { fetchRoutesFromOla } from '../scoring/olaMapsFetcher.js';
 import { calculateRoutePES } from '../scoring/pesCalculator.js';
 import { redisClient } from '../db/redis.js';
 import { validateCoordinates } from '../middleware/validateCoordinates.js';
+import { validateRoutes } from '../middleware/validateRoutes.js';
 
 export const router = express.Router();
 
-router.post("/score", validateCoordinates, async (req, res) => {
-  try {
-    const { originLat, originLng, destLat, destLng } = req.body;
+/**
+ * Generate a unique cache key for route-based requests
+ * Uses SHA-256 hash of serialized route data
+ */
+function generateRouteCacheKey(routes) {
+  const routeString = JSON.stringify(routes);
+  const hash = crypto.createHash('sha256').update(routeString).digest('hex');
+  return `route:custom:${hash}`;
+}
 
-    const cacheKey = `route:${originLat}:${originLng}:${destLat}:${destLng}`;
+router.post("/score", validateCoordinates, validateRoutes, async (req, res) => {
+  try {
+    const { originLat, originLng, destLat, destLng, routes } = req.body;
+
+    // Generate cache key based on request type
+    const cacheKey = routes 
+      ? generateRouteCacheKey(routes)
+      : `route:${originLat}:${originLng}:${destLat}:${destLng}`;
 
     // Check Redis Cache
     if (redisClient.isOpen) {
@@ -25,8 +41,8 @@ router.post("/score", validateCoordinates, async (req, res) => {
       }
     }
 
-    // 1. Fetch alternative polylines from OpenRouteService
-    const polylines = await fetchRoutes(originLat, originLng, destLat, destLng);
+    // 1. Get polylines - either from provided routes or fetch from Ola Maps API
+    const polylines = routes || await fetchRoutesFromOla(originLat, originLng, destLat, destLng);
     
     // 2. Score them all in parallel via pesCalculator
     const scoredRoutes = await Promise.all(
@@ -48,7 +64,27 @@ router.post("/score", validateCoordinates, async (req, res) => {
     // Return the sorted routes
     res.json(scoredRoutes);
   } catch (error) {
-    console.error("Error scoring routes:", error.message);
-    res.status(500).json({ error: error.message });
+    console.error("[score] Error scoring routes:", error.message);
+    
+    // Handle specific error types gracefully
+    if (error.message.includes("No environmental data available")) {
+      return res.status(404).json({ 
+        error: error.message,
+        hint: "Try coordinates in supported cities or check if data ingestion is running"
+      });
+    }
+    
+    if (error.message.includes("OPENROUTESERVICE_API_KEY")) {
+      return res.status(500).json({ 
+        error: "Route service configuration error",
+        details: "OpenRouteService API key is missing"
+      });
+    }
+    
+    // Generic error response
+    res.status(500).json({ 
+      error: "Failed to score routes",
+      details: error.message 
+    });
   }
 });

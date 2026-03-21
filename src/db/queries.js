@@ -62,7 +62,7 @@ export const NEAREST_AQI_POSTGIS = `
     AND ST_DWithin(
       ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
       ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography, 
-      500
+      2000
     )
   ORDER BY ST_Distance(
     ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
@@ -76,7 +76,7 @@ export const NEAREST_WEATHER_POSTGIS = `
     AND ST_DWithin(
       ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
       ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography, 
-      500
+      2000
     )
   ORDER BY ST_Distance(
     ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
@@ -90,7 +90,7 @@ export const NEAREST_TRAFFIC_POSTGIS = `
     AND ST_DWithin(
       ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 
       ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography, 
-      500
+      2000
     )
   ORDER BY ST_Distance(
     ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography, 

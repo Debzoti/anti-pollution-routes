@@ -1,4 +1,5 @@
 // Kolkata bounding box: approximately 22.5°N to 22.9°N, 88.2°E to 88.6°E
+// Used for SSE endpoint validation
 const KOLKATA_BOUNDS = {
   minLat: 22.5,
   maxLat: 22.9,
@@ -15,10 +16,19 @@ function isWithinKolkata(lat, lng) {
 
 /**
  * Middleware to validate route coordinates
- * Checks: missing fields, type validation, bounds, same origin/dest
+ * Checks: missing fields, type validation, same origin/dest
+ * If routes are provided in the request body, coordinate validation is skipped
+ * 
+ * Note: Geographic bounds are NOT enforced here to support multiple cities.
+ * The system will return an error during scoring if no environmental data is available.
  */
 export function validateCoordinates(req, res, next) {
-  const { originLat, originLng, destLat, destLng } = req.body;
+  const { originLat, originLng, destLat, destLng, routes } = req.body;
+
+  // If routes are provided, skip coordinate validation
+  if (routes !== undefined) {
+    return next();
+  }
 
   // 1. Check for missing fields
   if (originLat == null || originLng == null || destLat == null || destLng == null) {
@@ -37,28 +47,26 @@ export function validateCoordinates(req, res, next) {
     });
   }
 
-  // 3. Check if origin and destination are the same
+  // 3. Validate coordinate ranges
+  if (originLng < -180 || originLng > 180 || destLng < -180 || destLng > 180) {
+    return res.status(400).json({ 
+      error: "Longitude must be between -180 and 180",
+      received: { originLng, destLng }
+    });
+  }
+
+  if (originLat < -90 || originLat > 90 || destLat < -90 || destLat > 90) {
+    return res.status(400).json({ 
+      error: "Latitude must be between -90 and 90",
+      received: { originLat, destLat }
+    });
+  }
+
+  // 4. Check if origin and destination are the same
   if (originLat === destLat && originLng === destLng) {
     return res.status(400).json({ 
       error: "Origin and destination cannot be the same",
       coordinates: { lat: originLat, lng: originLng }
-    });
-  }
-
-  // 4. Validate coordinates are within Kolkata bounding box
-  if (!isWithinKolkata(originLat, originLng)) {
-    return res.status(400).json({ 
-      error: "Origin is outside Kolkata service area",
-      bounds: KOLKATA_BOUNDS,
-      received: { lat: originLat, lng: originLng }
-    });
-  }
-
-  if (!isWithinKolkata(destLat, destLng)) {
-    return res.status(400).json({ 
-      error: "Destination is outside Kolkata service area",
-      bounds: KOLKATA_BOUNDS,
-      received: { lat: destLat, lng: destLng }
     });
   }
 

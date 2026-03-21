@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "anti-poll-routes",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
