@@ -15,24 +15,23 @@
  * @returns {object}    — standard AQI shape
  */
 export function normaliseAQI(raw) {
-  const getParam = (name) =>
-    raw.parameters?.find((p) => p.parameter === name)?.lastValue ?? null;
+  const getParam = (name) => raw.parameters?.find((p) => p.parameter === name)?.lastValue ?? null;
 
   return {
-    type: 'aqi',
+    type: "aqi",
     timestamp: raw.datetimeLast?.utc ? new Date(raw.datetimeLast.utc) : new Date(),
     locationId: String(raw.id),
     locationName: raw.name ?? null,
     lat: raw.coordinates?.latitude ?? null,
     lng: raw.coordinates?.longitude ?? null,
-    pm25: getParam('pm25'),
-    pm10: getParam('pm10'),
-    no2: getParam('no2'),
-    o3: getParam('o3'),
-    co: getParam('co'),
-    so2: getParam('so2'),
+    pm25: getParam("pm25"),
+    pm10: getParam("pm10"),
+    no2: getParam("no2"),
+    o3: getParam("o3"),
+    co: getParam("co"),
+    so2: getParam("so2"),
     aqi: null, // OpenAQ doesn't give a composite AQI — scoring engine computes this
-    source: 'openaq',
+    source: "openaq",
   };
 }
 
@@ -43,7 +42,7 @@ export function normaliseAQI(raw) {
  */
 export function normaliseWeather(raw) {
   return {
-    type: 'weather',
+    type: "weather",
     timestamp: raw.dt ? new Date(raw.dt * 1000) : new Date(),
     lat: raw.coord?.lat ?? null,
     lng: raw.coord?.lon ?? null,
@@ -55,7 +54,7 @@ export function normaliseWeather(raw) {
     weatherMain: raw.weather?.[0]?.main ?? null,
     weatherDesc: raw.weather?.[0]?.description ?? null,
     visibilityM: raw.visibility ?? null,
-    source: 'openweather',
+    source: "openweather",
   };
 }
 
@@ -70,11 +69,10 @@ export function normaliseTraffic(raw, lat, lng) {
   const seg = raw.flowSegmentData ?? {};
   const freeFlow = seg.freeFlowSpeed ?? null;
   const current = seg.currentSpeed ?? null;
-  const congestion =
-    freeFlow && current ? Math.max(0, 1 - current / freeFlow) : null;
+  const congestion = freeFlow && current ? Math.max(0, 1 - current / freeFlow) : null;
 
   return {
-    type: 'traffic',
+    type: "traffic",
     timestamp: new Date(),
     segmentId: seg.frc ?? `${lat},${lng}`, // functional road class as id fallback
     lat,
@@ -83,6 +81,6 @@ export function normaliseTraffic(raw, lat, lng) {
     currentSpeed: current,
     congestionLevel: congestion !== null ? parseFloat(congestion.toFixed(4)) : null,
     travelTimeSec: seg.currentTravelTime ?? null,
-    source: 'tomtom',
+    source: "tomtom",
   };
 }

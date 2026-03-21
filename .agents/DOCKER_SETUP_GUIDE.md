@@ -6,16 +6,16 @@ I created a complete Docker setup for your Anti Pollution Routes project with Po
 
 ### Files Created/Modified
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.yml` | Main Docker configuration - defines PostgreSQL 16 with TimescaleDB |
-| `docker-compose.dev.yml` | Development overrides (optional) |
-| `.env` | Your local environment variables (database credentials, API keys) |
-| `.env.example` | Template for environment variables (updated with DB config) |
-| `.dockerignore` | Files to exclude from Docker builds |
-| `init-db/01-timescaledb-extension.sql` | Auto-runs on startup - enables TimescaleDB extension |
-| `init-db/02-hypertable-setup.sql` | Auto-runs on startup - creates example tables |
-| `DOCKER_SETUP_GUIDE.md` | This guide |
+| File                                   | Purpose                                                            |
+| -------------------------------------- | ------------------------------------------------------------------ |
+| `docker-compose.yml`                   | Main Docker configuration - defines PostgreSQL 16 with TimescaleDB |
+| `docker-compose.dev.yml`               | Development overrides (optional)                                   |
+| `.env`                                 | Your local environment variables (database credentials, API keys)  |
+| `.env.example`                         | Template for environment variables (updated with DB config)        |
+| `.dockerignore`                        | Files to exclude from Docker builds                                |
+| `init-db/01-timescaledb-extension.sql` | Auto-runs on startup - enables TimescaleDB extension               |
+| `init-db/02-hypertable-setup.sql`      | Auto-runs on startup - creates example tables                      |
+| `DOCKER_SETUP_GUIDE.md`                | This guide                                                         |
 
 ---
 
@@ -40,6 +40,7 @@ docker exec -it anti-pollution-db psql -U postgres -d anti_pollution
 ```
 
 Then run:
+
 ```sql
 SELECT * FROM timescaledb_information;
 ```
@@ -76,10 +77,11 @@ TOMTOM_API_KEY=your_key_here
 Your `config.js` already reads from `.env`, so no changes needed there. Just make sure your code uses the `DB_CONNECTION` variable.
 
 Example connection in your code:
+
 ```javascript
-import pkg from 'pg';
+import pkg from "pg";
 const { Pool } = pkg;
-import config from './config.js';
+import config from "./config.js";
 
 const pool = new Pool({
   connectionString: config.dbConnection,
@@ -90,12 +92,12 @@ const pool = new Pool({
 
 ## Common Commands
 
-| Command | What it does |
-|---------|--------------|
-| `docker-compose up -d` | Start database in background |
-| `docker-compose down` | Stop database |
-| `docker-compose logs -f` | View logs (follow mode) |
-| `docker-compose ps` | Check status |
+| Command                  | What it does                   |
+| ------------------------ | ------------------------------ |
+| `docker-compose up -d`   | Start database in background   |
+| `docker-compose down`    | Stop database                  |
+| `docker-compose logs -f` | View logs (follow mode)        |
+| `docker-compose ps`      | Check status                   |
 | `docker-compose down -v` | Stop + DELETE all data (reset) |
 
 ---
@@ -107,6 +109,7 @@ The file `init-db/02-hypertable-setup.sql` creates an example table for air qual
 ### To Modify the Schema:
 
 1. **If starting fresh** (no data yet):
+
    ```bash
    docker-compose down -v
    # Edit init-db/02-hypertable-setup.sql
@@ -122,7 +125,7 @@ The file `init-db/02-hypertable-setup.sql` creates an example table for air qual
 ### Example: Add a New Column
 
 ```sql
-ALTER TABLE air_quality_measurements 
+ALTER TABLE air_quality_measurements
 ADD COLUMN temperature DOUBLE PRECISION;
 ```
 
@@ -133,6 +136,7 @@ ADD COLUMN temperature DOUBLE PRECISION;
 ### 1. Compression (saves storage)
 
 Uncomment in `init-db/02-hypertable-setup.sql`:
+
 ```sql
 ALTER TABLE air_quality_measurements SET (timescaledb.compress = true);
 SELECT add_compression_policy('air_quality_measurements', INTERVAL '7 days');
@@ -141,6 +145,7 @@ SELECT add_compression_policy('air_quality_measurements', INTERVAL '7 days');
 ### 2. Data Retention (auto-delete old data)
 
 Uncomment in `init-db/02-hypertable-setup.sql`:
+
 ```sql
 SELECT add_retention_policy('air_quality_measurements', INTERVAL '1 year');
 ```
@@ -168,9 +173,10 @@ GROUP BY location_id, bucket;
 If port 5432 is already in use:
 
 1. Edit `docker-compose.yml`:
+
    ```yaml
    ports:
-     - "5433:5432"  # ← Change 5432 to another port
+     - "5433:5432" # ← Change 5432 to another port
    ```
 
 2. Update `.env`:
@@ -201,11 +207,13 @@ docker-compose up -d
 ## Development vs Production
 
 ### Development (what you have now)
+
 - Data persists in Docker volume
 - Default credentials
 - Local connections only
 
 ### For Production, consider:
+
 - Use strong passwords
 - Use Docker secrets or environment management
 - Add backup strategies

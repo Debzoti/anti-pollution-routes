@@ -2,8 +2,9 @@
 -- Anti-Pollution Routes — TimescaleDB Schema
 -- ============================================================
 
--- Enable TimescaleDB
+-- Enable TimescaleDB and PostGIS
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+CREATE EXTENSION IF NOT EXISTS postgis CASCADE;
 
 -- ============================================================
 -- 1. AQI / Air Quality measurements (from OpenAQ)

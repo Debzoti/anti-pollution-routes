@@ -26,13 +26,13 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DB_USER` | `postgres` | Database username |
-| `DB_PASSWORD` | `postgres` | Database password |
-| `DB_NAME` | `anti_pollution` | Database name |
-| `DB_HOST` | `localhost` | Database host |
-| `DB_PORT` | `5432` | Database port |
+| Variable      | Default          | Description       |
+| ------------- | ---------------- | ----------------- |
+| `DB_USER`     | `postgres`       | Database username |
+| `DB_PASSWORD` | `postgres`       | Database password |
+| `DB_NAME`     | `anti_pollution` | Database name     |
+| `DB_HOST`     | `localhost`      | Database host     |
+| `DB_PORT`     | `5432`           | Database port     |
 
 ### Connection String
 
@@ -67,6 +67,7 @@ docker-compose logs db
 ## TimescaleDB Features
 
 The setup includes:
+
 - **Hypertables** for time-series data
 - **Compression** support (commented out by default)
 - **Retention policies** support (commented out by default)
