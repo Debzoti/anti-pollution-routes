@@ -33,9 +33,13 @@ function getBearing(lat1, lon1, lat2, lon2) {
 /**
  * Samples a polyline to find the nearest AQI, Weather, and Traffic for each segment.
  * Expects polyline: [[lng1, lat1], [lng2, lat2], ...]
+ * 
+ * Early Exit: If the first 3 segments return no environmental data,
+ * throws an error indicating the region is not supported.
  */
 export async function sampleSegments(polyline) {
   const segments = [];
+  let noDataCount = 0;
 
   for (let i = 0; i < polyline.length - 1; i++) {
     const p1 = polyline[i]; // [lng, lat]
@@ -56,7 +60,7 @@ export async function sampleSegments(polyline) {
       pool.query(NEAREST_TRAFFIC_POSTGIS, [midLat, midLng]),
     ]);
 
-    segments.push({
+    const seg = {
       start: p1,
       end: p2,
       midpoint: [midLng, midLat],
@@ -65,7 +69,26 @@ export async function sampleSegments(polyline) {
       aqi: aqiRes.rows[0] || null,
       weather: weatherRes.rows[0] || null,
       traffic: trafficRes.rows[0] || null,
-    });
+    };
+
+    // Early exit check: if first 3 segments have no environmental data
+    if (i < 3) {
+      if (!seg.aqi && !seg.weather && !seg.traffic) {
+        noDataCount++;
+        
+        // If all first 3 segments have no data, region is not supported
+        if (noDataCount === 3) {
+          throw new Error(
+            "No environmental data available for this region. " +
+            "Currently supported cities: Mumbai, Delhi, Kolkata. " +
+            "Data is collected at multiple points across each city within 2km radius. " +
+            "Please wait 15-30 minutes after server restart for data collection to begin."
+          );
+        }
+      }
+    }
+
+    segments.push(seg);
   }
 
   return segments;

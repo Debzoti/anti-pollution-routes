@@ -1,0 +1,22 @@
+meta {
+  name: olagetroutse
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.olakrutrim.com/routing/v1/directions/basic?origin=18.52943,73.87480&destination=91940&api_key=YOUR_API_KEY
+  body: none
+  auth: inherit
+}
+
+params:query {
+  origin: 18.52943,73.87480
+  destination: 91940
+  api_key: YOUR_API_KEY
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
