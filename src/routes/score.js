@@ -1,6 +1,7 @@
 import express from 'express';
 import { fetchRoutes } from '../scoring/routeFetcher.js';
 import { calculateRoutePES } from '../scoring/pesCalculator.js';
+import { redisClient } from '../db/redis.js';
 
 export const router = express.Router();
 

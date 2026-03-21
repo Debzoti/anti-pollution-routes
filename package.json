@@ -24,6 +24,7 @@
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
     "pg": "^8.20.0",
+    "redis": "^5.11.0",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-dist": "^5.32.1",
     "swagger-ui-express": "^5.0.1"
