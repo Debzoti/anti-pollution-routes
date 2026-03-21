@@ -7,6 +7,7 @@ import { errorHandler } from "./src/middleware/errorHandler.js";
 import fs from "fs/promises" // Import fs/promises for async file operations
 import "./src/jobs/scheduler.js"; // registers all cron jobs on startup
 import "./src/jobs/heartbeat.js"; // registers heartbeat cron job
+import "./src/jobs/cleanup.js"; // registers cleanup cron job
 
 import swaggerUi from "swagger-ui-express";
 

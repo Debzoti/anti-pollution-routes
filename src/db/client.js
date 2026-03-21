@@ -11,8 +11,9 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-pool.on("error", (err) => {
+pool.on("error", (err, client) => {
   console.error("[DB] Unexpected pool error:", err.message);
+  // Pool will automatically remove the dead client and create new ones on demand
 });
 
 export default pool;

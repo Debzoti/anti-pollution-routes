@@ -99,13 +99,21 @@ CREATE INDEX IF NOT EXISTS idx_route_scores_route_time
     ON route_scores (route_id, time DESC);
 
 -- ============================================================
--- Compression policies (uncomment when you have 7+ days of data)
+-- Compression policies (compress data older than 7 days)
 -- ============================================================
--- ALTER TABLE air_quality SET (timescaledb.compress, timescaledb.compress_segmentby = 'location_id');
--- SELECT add_compression_policy('air_quality', INTERVAL '7 days');
+ALTER TABLE air_quality SET (timescaledb.compress, timescaledb.compress_segmentby = 'location_id');
+SELECT add_compression_policy('air_quality', INTERVAL '7 days');
 
--- ALTER TABLE weather_snapshots SET (timescaledb.compress, timescaledb.compress_segmentby = 'city_name');
--- SELECT add_compression_policy('weather_snapshots', INTERVAL '7 days');
+ALTER TABLE weather_snapshots SET (timescaledb.compress, timescaledb.compress_segmentby = 'city_name');
+SELECT add_compression_policy('weather_snapshots', INTERVAL '7 days');
 
--- ALTER TABLE traffic_conditions SET (timescaledb.compress, timescaledb.compress_segmentby = 'segment_id');
--- SELECT add_compression_policy('traffic_conditions', INTERVAL '7 days');
+ALTER TABLE traffic_conditions SET (timescaledb.compress, timescaledb.compress_segmentby = 'segment_id');
+SELECT add_compression_policy('traffic_conditions', INTERVAL '7 days');
+
+-- ============================================================
+-- Retention policies (drop data older than 90 days)
+-- ============================================================
+SELECT add_retention_policy('air_quality', INTERVAL '90 days');
+SELECT add_retention_policy('weather_snapshots', INTERVAL '90 days');
+SELECT add_retention_policy('traffic_conditions', INTERVAL '90 days');
+SELECT add_retention_policy('route_scores', INTERVAL '90 days');

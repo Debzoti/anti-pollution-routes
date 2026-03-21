@@ -38,6 +38,7 @@ cron.schedule("*/30 * * * *", async () => {
   console.log("[scheduler] Running Weather ingestion...");
   for (const { lat, lon, label } of POINTS) {
     try {
+      
       const raw = await fetchWeather(lat, lon);
       const row = normaliseWeather(raw);
       await writeRow(row);
