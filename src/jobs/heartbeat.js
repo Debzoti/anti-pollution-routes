@@ -61,7 +61,9 @@ async function scoreAndStoreRoute(route, routeIndex) {
   }
 
   console.log(
-    `[heartbeat] Scored ${scoredRoutes.length} routes for ${label}, recommended: route-${scoredRoutes[0].routeId}`,
+    `[heartbeat] Scored ${scoredRoutes.length} routes for ${label}${
+      scoredRoutes.length > 0 ? `, recommended: ${scoredRoutes[0].routeId}` : ""
+    }`,
   );
   return scoredRoutes;
 }
