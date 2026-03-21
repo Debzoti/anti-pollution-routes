@@ -41,12 +41,29 @@ router.post("/score", validateCoordinates, validateRoutes, async (req, res) => {
       }
     }
 
-    // 1. Get polylines - either from provided routes or fetch from Ola Maps API
-    const polylines = routes || await fetchRoutesFromOla(originLat, originLng, destLat, destLng);
+    // 1. Get routes - either from provided routes or fetch from Ola Maps API
+    const fetchedRoutes = routes || await fetchRoutesFromOla(originLat, originLng, destLat, destLng);
     
     // 2. Score them all in parallel via pesCalculator
     const scoredRoutes = await Promise.all(
-      polylines.map((polyline, index) => calculateRoutePES(index + 1, polyline)),
+      fetchedRoutes.map(async (routeData, index) => {
+        // Handle both formats: plain polyline array OR object with polyline + metadata
+        const polyline = Array.isArray(routeData) ? routeData : routeData.polyline;
+        const pesResult = await calculateRoutePES(index + 1, polyline);
+        
+        // If routeData has metadata from Ola Maps, include it in the response
+        if (!Array.isArray(routeData)) {
+          return {
+            ...pesResult,
+            distance: routeData.distance,
+            duration: routeData.duration,
+            distanceText: routeData.distanceText,
+            durationText: routeData.durationText,
+          };
+        }
+        
+        return pesResult;
+      }),
     );
 
     // 3. Sort by PES ascending (lowest first = least polluted / fastest / best)
