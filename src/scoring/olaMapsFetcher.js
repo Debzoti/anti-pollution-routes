@@ -3,10 +3,10 @@ import config from "../../config.js";
 
 /**
  * Fetch route between origin and destination from Ola Maps API.
- * Returns an array with a single route object containing polyline and metadata.
+ * Returns an array of route objects (typically a single route) containing polyline and metadata.
  * 
  * Note: alternatives=false is used to ensure travel_advisory (traffic data) is included.
- * Ola Maps API only provides travel_advisory for single route requests.
+ * Ola Maps API only provides travel_advisory for single-route requests (no alternatives).
  * 
  * Ola Maps API is optimized for Indian roads and provides better routing for Indian cities.
  */
