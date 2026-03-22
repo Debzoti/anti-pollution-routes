@@ -110,6 +110,15 @@ export function validateCoordinates(req, res, next) {
     });
   }
 
+  // 5. Enforce same-city routing unless cross-city is explicitly supported
+  if (originCheck.city && destCheck.city && originCheck.city !== destCheck.city) {
+    return res.status(400).json({
+      error: "Cross-city routing is not supported",
+      originCity: originCheck.city,
+      destinationCity: destCheck.city,
+      supportedCities: Object.keys(SERVICE_AREAS)
+    });
+  }
   // All validations passed
   next();
 }
