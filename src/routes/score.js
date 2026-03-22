@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { fetchRoutes } from '../scoring/routeFetcher.js';
 import { fetchRoutesFromOla } from '../scoring/olaMapsFetcher.js';
 import { calculateRoutePES } from '../scoring/pesCalculator.js';
+import { calculateOverallTraffic } from '../scoring/olaTrafficParser.js';
 import { redisClient } from '../db/redis.js';
 import { validateCoordinates } from '../middleware/validateCoordinates.js';
 import { validateRoutes } from '../middleware/validateRoutes.js';
@@ -41,12 +42,33 @@ router.post("/score", validateCoordinates, validateRoutes, async (req, res) => {
       }
     }
 
-    // 1. Get polylines - either from provided routes or fetch from Ola Maps API
-    const polylines = routes || await fetchRoutesFromOla(originLat, originLng, destLat, destLng);
+    // 1. Get routes - either from provided routes or fetch from Ola Maps API
+    const fetchedRoutes = routes || await fetchRoutesFromOla(originLat, originLng, destLat, destLng);
     
     // 2. Score them all in parallel via pesCalculator
     const scoredRoutes = await Promise.all(
-      polylines.map((polyline, index) => calculateRoutePES(index + 1, polyline)),
+      fetchedRoutes.map(async (routeData, index) => {
+        // Handle both formats: plain polyline array OR object with polyline + metadata
+        const polyline = Array.isArray(routeData) ? routeData : routeData.polyline;
+        const pesResult = await calculateRoutePES(index + 1, polyline);
+        
+        // If routeData has metadata from Ola Maps, include it in the response
+        if (!Array.isArray(routeData)) {
+          // Calculate overall traffic for the route
+          const overallTraffic = calculateOverallTraffic(routeData.travelAdvisory || '', polyline);
+          
+          return {
+            ...pesResult,
+            distance: routeData.distance,
+            duration: routeData.duration,
+            distanceText: routeData.distanceText,
+            durationText: routeData.durationText,
+            traffic: [overallTraffic], // Overall traffic data as array
+          };
+        }
+        
+        return pesResult;
+      }),
     );
 
     // 3. Sort by PES ascending (lowest first = least polluted / fastest / best)

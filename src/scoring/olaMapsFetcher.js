@@ -2,8 +2,11 @@ import axios from "axios";
 import config from "../../config.js";
 
 /**
- * Fetch up to 3 alternative routes between origin and destination from Ola Maps API.
- * Returns an array of polylines. (Each polyline is an array of [lng, lat] coordinate pairs).
+ * Fetch route between origin and destination from Ola Maps API.
+ * Returns an array with a single route object containing polyline and metadata.
+ * 
+ * Note: alternatives=false is used to ensure travel_advisory (traffic data) is included.
+ * Ola Maps API only provides travel_advisory for single route requests.
  * 
  * Ola Maps API is optimized for Indian roads and provides better routing for Indian cities.
  */
@@ -15,10 +18,11 @@ export async function fetchRoutesFromOla(originLat, originLng, destLat, destLng)
   try {
     // Ola Maps Directions API (not Basic) supports alternatives
     // Use POST request with query parameters
+    // Note: alternatives may not include travel_advisory data
     const params = new URLSearchParams({
       origin: `${originLat},${originLng}`,
       destination: `${destLat},${destLng}`,
-      alternatives: 'true', // Request alternative routes
+      alternatives: 'false', // Set to false to get travel_advisory data
       api_key: config.olaMapsApiKey,
     });
 
@@ -33,38 +37,54 @@ export async function fetchRoutesFromOla(originLat, originLng, destLat, destLng)
       },
     );
 
-    // Parse Ola Maps response and extract polylines
+    // Parse Ola Maps response and extract polylines with metadata
     const routes = response.data.routes || [];
     
     if (routes.length === 0) {
       throw new Error("No routes found from Ola Maps API");
     }
 
-    // Ola Maps Basic API returns only 1 route, but we can decode the polyline
-    // For multiple routes, we would need to use the advanced Directions API
+    // Extract polyline and metadata (distance, duration) from each route
     return routes.map((route) => {
+      const leg = route.legs && route.legs[0];
+      
+      if (!leg) {
+        throw new Error("Invalid route format: missing legs data");
+      }
+
+      let polyline;
+      
       // Ola Maps returns encoded polyline in overview_polyline field
       if (route.overview_polyline) {
-        return decodePolyline(route.overview_polyline);
-      }
-      
+        polyline = decodePolyline(route.overview_polyline);
+      } 
       // Fallback: extract coordinates from steps
-      if (route.legs && route.legs[0] && route.legs[0].steps) {
+      else if (leg.steps) {
         const coordinates = [];
-        route.legs[0].steps.forEach(step => {
+        leg.steps.forEach(step => {
           if (step.start_location) {
             coordinates.push([step.start_location.lng, step.start_location.lat]);
           }
         });
         // Add final end location
-        const lastStep = route.legs[0].steps[route.legs[0].steps.length - 1];
+        const lastStep = leg.steps[leg.steps.length - 1];
         if (lastStep && lastStep.end_location) {
           coordinates.push([lastStep.end_location.lng, lastStep.end_location.lat]);
         }
-        return coordinates;
+        polyline = coordinates;
+      } else {
+        throw new Error("Invalid route format: no polyline or steps data");
       }
-      
-      throw new Error("Invalid route format from Ola Maps");
+
+      // Return route with metadata from Ola Maps including traffic data
+      return {
+        polyline,
+        distance: leg.distance || 0,              // meters
+        duration: leg.duration || 0,              // seconds
+        distanceText: leg.readable_distance || `${((leg.distance || 0) / 1000).toFixed(1)} km`,
+        durationText: leg.readable_duration || `${Math.round((leg.duration || 0) / 60)} min`,
+        travelAdvisory: route.travel_advisory || '', // Traffic congestion data
+      };
     });
   } catch (error) {
     console.error("[olaMapsFetcher] Error fetching routes from Ola Maps:", error.message);
