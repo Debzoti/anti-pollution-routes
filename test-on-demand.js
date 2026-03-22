@@ -43,7 +43,7 @@ async function testOnDemandFetch() {
     
     if (trafficRaw) {
       const trafficNorm = normaliseTraffic(trafficRaw, lat, lng);
-      console.log(`   ✅ Current speed: ${trafficNorm.current_speed}, Congestion: ${trafficNorm.congestion_level}`);
+      console.log(`   ✅ Current speed: ${trafficNorm.currentSpeed}, Congestion: ${trafficNorm.congestionLevel}`);
     } else {
       console.log(`   ⚠️  No traffic data available`);
     }
