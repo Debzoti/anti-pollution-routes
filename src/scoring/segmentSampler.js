@@ -150,7 +150,8 @@ async function fetchEnvironmentalDataWithCache(lat, lng) {
  * On-Demand Approach: Fetches AQI, Weather, and Traffic data directly from APIs
  * for the actual route coordinates. No pre-cached data needed.
  * 
- * Optimization: Samples every 10th point to reduce API calls while maintaining accuracy.
+ * Optimization: Uses an adaptive sampling interval (every 5th/15th/30th point based on route length)
+ * to reduce API calls while maintaining accuracy.
  */
 export async function sampleSegments(polyline) {
   const segments = [];
