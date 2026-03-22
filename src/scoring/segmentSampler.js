@@ -49,6 +49,7 @@ async function fetchEnvironmentalDataWithCache(lat, lng) {
     try {
       const cached = await redisClient.get(cacheKey);
       if (cached) {
+        console.log(`[segmentSampler] ✓ Coordinate cache HIT for (${roundedLat}, ${roundedLng})`);
         return JSON.parse(cached);
       }
     } catch (err) {
@@ -57,6 +58,8 @@ async function fetchEnvironmentalDataWithCache(lat, lng) {
   }
   
   // Cache miss - fetch from APIs
+  console.log(`[segmentSampler] ✗ Coordinate cache MISS for (${roundedLat}, ${roundedLng}) - fetching from APIs`);
+  
   let aqi = null;
   let weather = null;
   let traffic = null;
