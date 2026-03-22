@@ -32,7 +32,7 @@ async function testOnDemandFetch() {
     
     if (weatherRaw) {
       const weatherNorm = normaliseWeather(weatherRaw);
-      console.log(`   ✅ Temp: ${weatherNorm.temp_celsius}°C, Humidity: ${weatherNorm.humidity_pct}%`);
+      console.log(`   ✅ Temp: ${weatherNorm.tempCelsius}°C, Humidity: ${weatherNorm.humidityPct}%`);
     } else {
       console.log(`   ⚠️  No weather data available`);
     }
