@@ -43,17 +43,9 @@ const POINTS = [
 ];
 
 // ─────────────────────────────────────────────
-// SCHEDULER DISABLED - Using on-demand fetching instead
+// AQI — run every 15 minutes
 // ─────────────────────────────────────────────
-// The system now fetches environmental data on-demand when routes are requested,
-// with coordinate-level caching for performance. Pre-collection is no longer needed.
-
-console.log("[scheduler] Scheduler disabled - using on-demand fetching with coordinate-level caching");
-
-// Uncomment below to re-enable pre-collection if needed:
-
-/*
-cron.schedule("*​/15 * * * *", async () => {
+cron.schedule("*/15 * * * *", async () => {
   console.log("[scheduler] Running AQI ingestion...");
   for (const { lat, lon, label } of POINTS) {
     try {
@@ -69,4 +61,40 @@ cron.schedule("*​/15 * * * *", async () => {
     }
   }
 });
-*/
+
+// ─────────────────────────────────────────────
+// Weather — run every 30 minutes
+// ─────────────────────────────────────────────
+cron.schedule("*/30 * * * *", async () => {
+  console.log("[scheduler] Running Weather ingestion...");
+  for (const { lat, lon, label } of POINTS) {
+    try {
+      
+      const raw = await fetchWeather(lat, lon);
+      const row = normaliseWeather(raw);
+      await writeRow(row);
+      console.log(`[scheduler] Weather: stored for ${label}`);
+    } catch (err) {
+      console.error(`[scheduler] Weather failed for ${label}:`, err.message);
+    }
+  }
+});
+
+// ─────────────────────────────────────────────
+// Traffic — run every 10 minutes
+// ─────────────────────────────────────────────
+cron.schedule("*/10 * * * *", async () => {
+  console.log("[scheduler] Running Traffic ingestion...");
+  for (const { lat, lon, label } of POINTS) {
+    try {
+      const raw = await fetchTraffic(lat, lon);
+      const row = normaliseTraffic(raw, lat, lon);
+      await writeRow(row);
+      console.log(`[scheduler] Traffic: stored for ${label}`);
+    } catch (err) {
+      console.error(`[scheduler] Traffic failed for ${label}:`, err.message);
+    }
+  }
+});
+
+console.log("[scheduler] All cron jobs registered — AQI:15min, Weather:30min, Traffic:10min");
