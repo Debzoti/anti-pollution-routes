@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { fetchRoutes } from '../scoring/routeFetcher.js';
 import { fetchRoutesFromOla } from '../scoring/olaMapsFetcher.js';
 import { calculateRoutePES } from '../scoring/pesCalculator.js';
+import { calculateOverallTraffic } from '../scoring/olaTrafficParser.js';
 import { redisClient } from '../db/redis.js';
 import { validateCoordinates } from '../middleware/validateCoordinates.js';
 import { validateRoutes } from '../middleware/validateRoutes.js';
@@ -53,12 +54,16 @@ router.post("/score", validateCoordinates, validateRoutes, async (req, res) => {
         
         // If routeData has metadata from Ola Maps, include it in the response
         if (!Array.isArray(routeData)) {
+          // Calculate overall traffic for the route
+          const overallTraffic = calculateOverallTraffic(routeData.travelAdvisory || '', polyline);
+          
           return {
             ...pesResult,
             distance: routeData.distance,
             duration: routeData.duration,
             distanceText: routeData.distanceText,
             durationText: routeData.durationText,
+            traffic: [overallTraffic], // Overall traffic data as array
           };
         }
         

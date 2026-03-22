@@ -2,8 +2,11 @@ import axios from "axios";
 import config from "../../config.js";
 
 /**
- * Fetch up to 3 alternative routes between origin and destination from Ola Maps API.
- * Returns an array of polylines. (Each polyline is an array of [lng, lat] coordinate pairs).
+ * Fetch route between origin and destination from Ola Maps API.
+ * Returns an array with a single route object containing polyline and metadata.
+ * 
+ * Note: alternatives=false is used to ensure travel_advisory (traffic data) is included.
+ * Ola Maps API only provides travel_advisory for single route requests.
  * 
  * Ola Maps API is optimized for Indian roads and provides better routing for Indian cities.
  */
@@ -15,10 +18,11 @@ export async function fetchRoutesFromOla(originLat, originLng, destLat, destLng)
   try {
     // Ola Maps Directions API (not Basic) supports alternatives
     // Use POST request with query parameters
+    // Note: alternatives may not include travel_advisory data
     const params = new URLSearchParams({
       origin: `${originLat},${originLng}`,
       destination: `${destLat},${destLng}`,
-      alternatives: 'true', // Request alternative routes
+      alternatives: 'false', // Set to false to get travel_advisory data
       api_key: config.olaMapsApiKey,
     });
 
@@ -72,13 +76,14 @@ export async function fetchRoutesFromOla(originLat, originLng, destLat, destLng)
         throw new Error("Invalid route format: no polyline or steps data");
       }
 
-      // Return route with metadata from Ola Maps
+      // Return route with metadata from Ola Maps including traffic data
       return {
         polyline,
         distance: leg.distance || 0,              // meters
         duration: leg.duration || 0,              // seconds
         distanceText: leg.readable_distance || `${((leg.distance || 0) / 1000).toFixed(1)} km`,
         durationText: leg.readable_duration || `${Math.round((leg.duration || 0) / 60)} min`,
+        travelAdvisory: route.travel_advisory || '', // Traffic congestion data
       };
     });
   } catch (error) {
