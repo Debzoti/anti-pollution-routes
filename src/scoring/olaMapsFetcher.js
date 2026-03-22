@@ -22,9 +22,11 @@ export async function fetchRoutesFromOla(originLat, originLng, destLat, destLng)
     const params = new URLSearchParams({
       origin: `${originLat},${originLng}`,
       destination: `${destLat},${destLng}`,
-      alternatives: 'false', // Set to false to get travel_advisory data
+      alternatives: 'true', // Enable alternatives to get multiple routes
       api_key: config.olaMapsApiKey,
     });
+
+    console.log(`[olaMapsFetcher] Fetching routes from Ola Maps with alternatives=true`);
 
     const response = await axios.post(
       `https://api.olamaps.io/routing/v1/directions?${params.toString()}`,
@@ -33,12 +35,14 @@ export async function fetchRoutesFromOla(originLat, originLng, destLat, destLng)
         headers: {
           "X-Request-Id": `route-${Date.now()}`,
         },
-        timeout: 10000,
+        timeout: 30000, // Increased to 30 seconds for longer routes
       },
     );
 
     // Parse Ola Maps response and extract polylines with metadata
     const routes = response.data.routes || [];
+    
+    console.log(`[olaMapsFetcher] Ola Maps returned ${routes.length} route(s)`);
     
     if (routes.length === 0) {
       throw new Error("No routes found from Ola Maps API");

@@ -74,17 +74,24 @@ router.post("/score", validateCoordinates, validateRoutes, async (req, res) => {
     // 3. Sort by PES ascending (lowest first = least polluted / fastest / best)
     scoredRoutes.sort((a, b) => a.pes - b.pes);
 
+    // 4. Build response object
+    const response = {
+      success: true,
+      count: scoredRoutes.length,
+      routes: scoredRoutes,
+    };
+
     // Save to Redis Cache (TTL = 1 hour = 3600 seconds)
     if (redisClient.isOpen) {
       try {
-        await redisClient.setEx(cacheKey, 3600, JSON.stringify(scoredRoutes));
+        await redisClient.setEx(cacheKey, 3600, JSON.stringify(response));
       } catch (cacheErr) {
         console.error('[score] Redis set error:', cacheErr.message);
       }
     }
 
-    // Return the sorted routes
-    res.json(scoredRoutes);
+    // Return the response object with routes array
+    res.json(response);
   } catch (error) {
     console.error("[score] Error scoring routes:", error.message);
     
